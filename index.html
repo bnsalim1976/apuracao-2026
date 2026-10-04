@@ -1,3 +1,4 @@
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Mapa da Apuração 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -17,7 +18,8 @@
   --accent: #3fbf94; --accent-ink: #0d1411; --nodata: #262b28; --hi: #fff; color-scheme: dark }
 * { box-sizing: border-box }
 body { background: var(--bg); color: var(--ink); font: 15px/1.45 var(--f-ui); margin: 0 }
-.app { padding-inline: 16px; padding-block: 14px 32px; max-width: 1500px; margin: 0 auto; display: grid; gap: 14px }
+.app { padding-inline: 16px; padding-block: 14px 32px; max-width: 1500px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px }
+.controls > *, .row > * { min-width: 0 }
 header.top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px }
 h1 { font-size: 1.55rem; font-weight: 700; margin: 0; letter-spacing: -.01em; text-wrap: balance }
 .status { font: 500 .8rem var(--f-num); color: var(--muted) }
