@@ -1,0 +1,129 @@
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script>try{var t=localStorage.getItem("tema");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<meta property="og:type" content="website"><meta property="og:title" content="Oráculo da Apuração 2026"><meta property="og:description" content="Para onde a apuração vai: fim do 1º turno e 2º turno projetados com o que já foi contado e o voto de 2022, município a município.">
+<title>Oráculo da Apuração</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;700&family=Public+Sans:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: coluna única de leitura; veredito no topo, 2º turno, tabela por estado, método no fim. Mesmas cores da urna da projeção. */
+:root{
+  --bg:#f3f1ec; --panel:#fbfaf7; --fg:#1d1f1c; --muted:#62655e; --line:#d9d6cc;
+  --a:#1d4fa8; --l:#c22a2a; --duelo:#fff; --neutro:#8a8d84; --barra:#e4e1d7;
+  --f-disp:"Archivo Narrow","Arial Narrow",Arial,sans-serif;
+  --f-body:"Public Sans",system-ui,sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#171916; --panel:#20231f; --fg:#ecebe5; --muted:#a3a69c; --line:#353a33;
+  --a:#6f9bff; --l:#ff6f6f; --duelo:#10130f; --neutro:#7d8277; --barra:#2d322b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#171916; --panel:#20231f; --fg:#ecebe5; --muted:#a3a69c; --line:#353a33;
+  --a:#6f9bff; --l:#ff6f6f; --duelo:#10130f; --neutro:#7d8277; --barra:#2d322b; color-scheme:dark}
+.tema{float:right;font:600 .8rem var(--f-body);background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:4px;padding:4px 10px;cursor:pointer}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--f-body);margin:0}
+.w{max-width:820px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:flex;flex-direction:column;gap:20px}
+h1,h2{font-family:var(--f-disp);text-wrap:balance;margin:0;letter-spacing:.01em}
+h1{font-size:2rem;line-height:1.05} h2{font-size:1.35rem}
+a{color:inherit}
+.nav{font-size:.85rem;color:var(--muted);margin:0 0 6px}
+.sub{color:var(--muted);font-size:.85rem;margin:6px 0 0}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;display:grid;gap:14px}
+.veredito{font:700 1.5rem/1.2 var(--f-disp);margin:0;text-wrap:balance}
+.lin{display:grid;grid-template-columns:minmax(0,11rem) minmax(0,1fr) 4.5rem;gap:4px 12px;align-items:center;font-size:.9rem}
+.lin>.num{text-align:right}
+.lin .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trilho{position:relative;height:14px;background:var(--barra);border-radius:3px}
+.trilho .faixa{position:absolute;top:0;bottom:0;opacity:.3;border-radius:3px}
+.trilho .pt{position:absolute;top:-2px;bottom:-2px;width:3px;border-radius:2px}
+.trilho .meio{position:absolute;top:-4px;bottom:-4px;left:50%;border-left:1px dashed var(--fg);opacity:.5}
+.duelo{display:flex;height:34px;border-radius:4px;overflow:hidden;font:600 .9rem var(--f-num);color:var(--duelo)}
+.duelo div{display:flex;align-items:center;padding:0 10px;min-width:0;white-space:nowrap}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.kpi div{display:flex;flex-direction:column;gap:2px}
+.kpi b{font:500 1.5rem var(--f-num)} .kpi span{color:var(--muted);font-size:.8rem}
+table{border-collapse:collapse;width:100%;font-size:.85rem}
+th,td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{font-weight:600;color:var(--muted);font-size:.75rem;vertical-align:bottom}
+td:first-child,th:first-child{text-align:left}
+.tab{overflow-x:auto}
+.up{color:var(--a)} .dn{color:var(--l)}
+details summary{cursor:pointer;font-weight:600}
+.met p,.met li{color:var(--muted);font-size:.88rem;margin:.4em 0}
+</style>
+<div class="w">
+  <header>
+    <button type="button" class="tema" id="tema"></button>
+    <p class="nav"><a href="./">Mapa da apuração</a> · <a href="projecao.html">Projeção pelas pesquisas</a></p>
+    <h1>Oráculo da apuração</h1>
+    <p class="sub" id="status"></p>
+  </header>
+  <section class="card" id="t1"></section>
+  <section class="card" id="t2"></section>
+  <section class="card">
+    <h2>Estado por estado: 2026 contra 2022</h2>
+    <p class="sub">% dos votos válidos. "2026" é a projeção do fim da contagem; "2º turno" usa a taxa de transferência de 2022 de cada município.</p>
+    <div class="tab"><table id="ufs"></table></div>
+  </section>
+  <section class="card met">
+    <h2>Como o oráculo pensa</h2>
+    <ol>
+      <li><b>O que já foi contado não muda.</b> As seções restantes de um município já aberto seguem o resultado dele até agora.</li>
+      <li><b>Município ainda fechado</b> recebe o voto que deu em 2022 (Lula pelo PT, Bolsonaro pelo PL) somado à variação medida nos municípios já contados do mesmo estado e do mesmo porte (até 10 mil, até 100 mil e acima de 100 mil votos). O comparecimento segue a mesma lógica.</li>
+      <li><b>2º turno:</b> em 2022, cada município mostrou que fração dos votos "dos outros" foi para Bolsonaro entre o 1º e o 2º turno (<span id="t22"></span> no país). O oráculo aplica essa fração, município a município, aos votos dos outros candidatos de 2026.</li>
+      <li><b>Incerteza:</b> 4.000 sorteios com erro por estado (medido: quanto a variação das cidades grandes difere da das pequenas), um erro nacional comum e um erro de transferência de ±10 pontos. A faixa é o intervalo de 90%.</li>
+    </ol>
+    <p><b>Teste com dado real</b> (18h40 de 04/10, BRT): escondendo os municípios já 100% contados de um porte e prevendo pelos outros, só com o estado e sem o porte, o erro agregado foi de 1,3 a 1,4 ponto. O oráculo usa o porte justamente para reduzir esse erro.</p>
+    <p><b>Limites:</b> a fração de 2022 não sabe que os "outros" de 2026 (Cury, Caiado, Renan Santos, Zema) são mais à direita que os de 2022 (Ciro, Tebet); por isso a tabela de sensibilidade. O choque nacional e o erro de transferência são hipóteses, não medidas. Não é pesquisa eleitoral: é conta sobre votos oficiais do TSE.</p>
+  </section>
+</div>
+<script>
+// Tela branca / tela preta: escolha do leitor vale para as duas páginas (mesma chave "tema")
+const btTema = document.getElementById("tema");
+const temaAtual = () => document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+const rotulaTema = () => { btTema.textContent = temaAtual() === "dark" ? "Tela branca" : "Tela preta" };
+btTema.onclick = () => { const t = temaAtual() === "dark" ? "light" : "dark"; document.documentElement.dataset.theme = t; try { localStorage.setItem("tema", t) } catch (e) {} rotulaTema() };
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", rotulaTema);
+rotulaTema();
+
+const D = {"lido": "04/10/2026 18:47 BRT", "secoes_pres": 41.57, "apurado_modelo": 46.1, "municipios": 5570, "com_voto": 4110, "proj": [{"n": "22", "nm": "Flávio Bolsonaro", "partido": "PL", "p": 47.65, "lo": 46.61, "hi": 48.66, "vence1": 0.0}, {"n": "13", "nm": "Lula", "partido": "PT", "p": 44.4, "lo": 43.39, "hi": 45.42, "vence1": 0.0}, {"n": "70", "nm": "Escritor Augusto Cury", "partido": "AVANTE", "p": 2.93, "lo": 2.37, "hi": 3.5, "vence1": 0.0}, {"n": "14", "nm": "Renan Santos", "partido": "MISSÃO", "p": 2.29, "lo": 1.85, "hi": 2.73, "vence1": 0.0}, {"n": "55", "nm": "Ronaldo Caiado", "partido": "PSD", "p": 2.22, "lo": 1.86, "hi": 2.59, "vence1": 0.0}, {"n": "30", "nm": "Zema", "partido": "NOVO", "p": 0.29, "lo": 0.23, "hi": 0.34, "vence1": 0.0}, {"n": "80", "nm": "Samara", "partido": "UP", "p": 0.1, "lo": 0.08, "hi": 0.13, "vence1": 0.0}, {"n": "16", "nm": "Hertz Dias", "partido": "PSTU", "p": 0.04, "lo": 0.03, "hi": 0.05, "vence1": 0.0}, {"n": "27", "nm": "Clariana Barao", "partido": "DC", "p": 0.03, "lo": 0.03, "hi": 0.04, "vence1": 0.0}, {"n": "21", "nm": "Edmilson Costa", "partido": "PCB", "p": 0.02, "lo": 0.02, "hi": 0.02, "vence1": 0.0}, {"n": "35", "nm": "Veterinário Wilson Grassi", "partido": "DEMOCRATA", "p": 0.02, "lo": 0.01, "hi": 0.02, "vence1": 0.0}, {"n": "29", "nm": "Rui Costa Pimenta", "partido": "PCO", "p": 0.01, "lo": 0.01, "hi": 0.02, "vence1": 0.0}], "p_2turno": 100.0, "pares": [[["Lula", "Flávio Bolsonaro"], 100.0]], "t2": {"a": "Flávio Bolsonaro", "l": "Lula", "a2": 53.3, "lo": 50.3, "hi": 56.2, "p_a": 96.7, "t22": 70.5, "outros": 8.0, "sens": [[20, 49.2], [35, 50.4], [50, 51.6], [65, 52.8], [80, 54.0], [95, 55.2]]}, "br22": {"lula1": 48.43, "bol1": 43.2, "lula2": 50.9, "bol2": 49.1}, "ufs": [{"uf": "AC", "secoes": 81.3, "apurado": 81.1, "lula26": 28.6, "fla26": 64.6, "lula22": 29.3, "bol22": 62.5, "fla2t": 70.8, "bol2t22": 70.3, "erro": 1.8}, {"uf": "AL", "secoes": 20.0, "apurado": 18.3, "lula26": 54.5, "fla26": 40.7, "lula22": 56.5, "bol22": 36.0, "fla2t": 44.0, "bol2t22": 41.3, "erro": 1.0}, {"uf": "AM", "secoes": 56.5, "apurado": 59.8, "lula26": 47.9, "fla26": 45.2, "lula22": 49.6, "bol22": 42.8, "fla2t": 50.5, "bol2t22": 48.9, "erro": 2.7}, {"uf": "AP", "secoes": 46.3, "apurado": 45.6, "lula26": 46.5, "fla26": 44.9, "lula22": 45.7, "bol22": 43.4, "fla2t": 51.0, "bol2t22": 51.4, "erro": 4.1}, {"uf": "BA", "secoes": 27.7, "apurado": 27.1, "lula26": 65.1, "fla26": 29.4, "lula22": 69.7, "bol22": 24.3, "fla2t": 32.7, "bol2t22": 27.9, "erro": 1.4}, {"uf": "CE", "secoes": 26.7, "apurado": 25.1, "lula26": 61.0, "fla26": 33.0, "lula22": 65.9, "bol22": 25.4, "fla2t": 36.2, "bol2t22": 30.0, "erro": 1.6}, {"uf": "DF", "secoes": 95.0, "apurado": 95.0, "lula26": 38.2, "fla26": 51.2, "lula22": 36.9, "bol22": 51.7, "fla2t": 57.8, "bol2t22": 58.8, "erro": 3.0}, {"uf": "ES", "secoes": 83.4, "apurado": 81.3, "lula26": 37.1, "fla26": 55.4, "lula22": 40.4, "bol22": 52.2, "fla2t": 61.3, "bol2t22": 58.0, "erro": 1.0}, {"uf": "Exterior", "secoes": null, "apurado": 100.0, "lula26": 52.2, "fla26": 38.2, "lula22": null, "bol22": null, "fla2t": 45.0, "bol2t22": null, "erro": 3.0}, {"uf": "GO", "secoes": 53.7, "apurado": 53.8, "lula26": 30.3, "fla26": 54.4, "lula22": 39.5, "bol22": 52.2, "fla2t": 66.4, "bol2t22": 58.7, "erro": 1.8}, {"uf": "MA", "secoes": 36.2, "apurado": 36.6, "lula26": 63.5, "fla26": 31.3, "lula22": 68.8, "bol22": 26.0, "fla2t": 34.2, "bol2t22": 28.9, "erro": 1.0}, {"uf": "MG", "secoes": 37.2, "apurado": 38.1, "lula26": 42.7, "fla26": 48.7, "lula22": 48.3, "bol22": 43.6, "fla2t": 55.3, "bol2t22": 49.8, "erro": 1.4}, {"uf": "MS", "secoes": 89.9, "apurado": 89.0, "lula26": 33.8, "fla26": 59.4, "lula22": 39.0, "bol22": 52.7, "fla2t": 64.9, "bol2t22": 59.5, "erro": 2.2}, {"uf": "MT", "secoes": 68.6, "apurado": 70.6, "lula26": 28.9, "fla26": 65.4, "lula22": 34.4, "bol22": 59.8, "fla2t": 70.3, "bol2t22": 65.1, "erro": 1.4}, {"uf": "PA", "secoes": 51.1, "apurado": 53.2, "lula26": 49.2, "fla26": 45.1, "lula22": 52.2, "bol22": 40.3, "fla2t": 48.8, "bol2t22": 45.3, "erro": 1.7}, {"uf": "PB", "secoes": 79.3, "apurado": 77.8, "lula26": 60.9, "fla26": 33.4, "lula22": 64.2, "bol22": 29.6, "fla2t": 36.9, "bol2t22": 33.4, "erro": 1.0}, {"uf": "PE", "secoes": 33.4, "apurado": 32.6, "lula26": 62.8, "fla26": 31.5, "lula22": 65.3, "bol22": 29.9, "fla2t": 35.2, "bol2t22": 33.1, "erro": 1.2}, {"uf": "PI", "secoes": 52.9, "apurado": 51.8, "lula26": 69.3, "fla26": 25.6, "lula22": 74.3, "bol22": 19.9, "fla2t": 28.4, "bol2t22": 23.1, "erro": 1.0}, {"uf": "PR", "secoes": 84.7, "apurado": 83.4, "lula26": 30.9, "fla26": 60.2, "lula22": 36.0, "bol22": 55.3, "fla2t": 67.4, "bol2t22": 62.4, "erro": 2.4}, {"uf": "RJ", "secoes": 25.0, "apurado": 23.0, "lula26": 40.0, "fla26": 52.3, "lula22": 40.7, "bol22": 51.1, "fla2t": 57.4, "bol2t22": 56.5, "erro": 2.4}, {"uf": "RN", "secoes": 42.0, "apurado": 42.2, "lula26": 58.8, "fla26": 35.6, "lula22": 63.0, "bol22": 31.0, "fla2t": 39.1, "bol2t22": 34.9, "erro": 1.0}, {"uf": "RO", "secoes": 72.3, "apurado": 72.6, "lula26": 25.7, "fla26": 67.6, "lula22": 29.0, "bol22": 64.4, "fla2t": 73.8, "bol2t22": 70.7, "erro": 1.1}, {"uf": "RR", "secoes": 51.5, "apurado": 52.6, "lula26": 22.7, "fla26": 71.2, "lula22": 23.0, "bol22": 69.6, "fla2t": 76.5, "bol2t22": 76.1, "erro": 2.8}, {"uf": "RS", "secoes": 66.1, "apurado": 65.9, "lula26": 35.6, "fla26": 55.7, "lula22": 42.3, "bol22": 48.9, "fla2t": 63.0, "bol2t22": 56.3, "erro": 3.3}, {"uf": "SC", "secoes": 47.2, "apurado": 44.4, "lula26": 24.8, "fla26": 66.8, "lula22": 29.5, "bol22": 62.2, "fla2t": 74.0, "bol2t22": 69.3, "erro": 2.8}, {"uf": "SE", "secoes": 48.6, "apurado": 49.6, "lula26": 62.0, "fla26": 31.3, "lula22": 63.8, "bol22": 29.2, "fla2t": 34.7, "bol2t22": 32.8, "erro": 1.1}, {"uf": "SP", "secoes": 38.2, "apurado": 37.6, "lula26": 37.8, "fla26": 52.3, "lula22": 40.9, "bol22": 47.7, "fla2t": 58.9, "bol2t22": 55.2, "erro": 1.7}, {"uf": "TO", "secoes": 87.8, "apurado": 85.9, "lula26": 43.0, "fla26": 50.8, "lula22": 50.4, "bol22": 44.0, "fla2t": 55.7, "bol2t22": 48.6, "erro": 1.2}]};
+const pc = (x, d = 1) => x == null ? "–" : x.toLocaleString("pt-BR", {minimumFractionDigits: d, maximumFractionDigits: d}) + "%";
+const sg = x => (x > 0 ? "+" : "") + x.toLocaleString("pt-BR", {minimumFractionDigits: 1, maximumFractionDigits: 1});
+const cor = n => n === "22" ? "var(--a)" : n === "13" ? "var(--l)" : "var(--neutro)";
+document.getElementById("status").innerHTML =
+  `Votos do TSE lidos em <span class="num">${D.lido}</span> · <span class="num">${pc(D.secoes_pres, 2)}</span> das seções de presidente apuradas · ${D.com_voto.toLocaleString("pt-BR")} de ${D.municipios.toLocaleString("pt-BR")} municípios com voto. Atualizada a cada 5 minutos.`;
+document.getElementById("t22").textContent = pc(D.t2.t22);
+
+const [p1, p2] = D.proj, br = D.br22;
+const maxEsc = Math.max(60, ...D.proj.map(p => p.hi)), x = v => (v / maxEsc * 100) + "%";
+const fim1 = D.p_2turno >= 99.5 ? `Haverá 2º turno: ${p1.nm} × ${p2.nm}.`
+  : D.p_2turno <= 0.5 ? `${p1.nm} vence no 1º turno.`
+  : `Chance de 2º turno: ${pc(D.p_2turno)}.`;
+document.getElementById("t1").innerHTML = `
+  <h2>Fim do 1º turno, projetado</h2>
+  <p class="veredito">${fim1}</p>
+  <div class="kpi">
+    <div><b class="num">${pc(D.p_2turno)}</b><span>chance de haver 2º turno</span></div>
+    <div><b class="num">${pc(p1.p)}</b><span>${p1.nm} no fim (faixa ${pc(p1.lo)} a ${pc(p1.hi)})</span></div>
+    <div><b class="num">${pc(p2.p)}</b><span>${p2.nm} no fim (faixa ${pc(p2.lo)} a ${pc(p2.hi)})</span></div>
+  </div>
+  ${D.proj.filter(p => p.p >= 0.5).map(p => `<div class="lin"><span class="nm">${p.nm} <small>(${p.partido})</small></span>
+    <div class="trilho"><div class="faixa" style="left:${x(p.lo)};width:calc(${x(p.hi)} - ${x(p.lo)});background:${cor(p.n)}"></div><div class="pt" style="left:${x(p.p)};background:${cor(p.n)}"></div><div class="meio" style="left:${x(50)}"></div></div>
+    <span class="num">${pc(p.p)}</span></div>`).join("")}
+  <p class="sub">Em 2022, no 1º turno: Lula ${pc(br.lula1)}, Bolsonaro ${pc(br.bol1)}. Variação projetada: direita <b class="num">${sg(D.proj.find(p => p.n === "22")?.p - br.bol1)}</b> pontos, PT <b class="num">${sg(D.proj.find(p => p.n === "13")?.p - br.lula1)}</b> pontos. Linha tracejada = 50% dos válidos.</p>`;
+
+const T2 = D.t2, l2 = 100 - T2.a2, ganha = T2.a2 > 50 ? T2.a : T2.l, pg = T2.a2 > 50 ? T2.p_a : 100 - T2.p_a;
+document.getElementById("t2").innerHTML = `
+  <h2>2º turno, 25/10: ${T2.a} × ${T2.l}</h2>
+  <p class="veredito">${ganha} vence em ${pc(pg)} dos sorteios.</p>
+  <div class="duelo"><div style="flex:${T2.a2};background:var(--a)">${T2.a} ${pc(T2.a2)}</div><div style="flex:${l2};background:var(--l);justify-content:flex-end">${pc(l2)} ${T2.l}</div></div>
+  <p class="sub">Faixa de 90% para ${T2.a}: <b class="num">${pc(T2.lo)} a ${pc(T2.hi)}</b>. Em 2022, 2º turno: Lula ${pc(br.lula2)}, Bolsonaro ${pc(br.bol2)}.</p>
+  <div><b>E se os eleitores dos outros (${pc(T2.outros)} dos válidos) se dividirem de forma diferente de 2022?</b>
+  <table><tr><th>Fração dos outros que vai para ${T2.a}</th>${T2.sens.map(s => `<th class="num">${s[0]}%</th>`).join("")}</tr>
+  <tr><td>${T2.a} no 2º turno</td>${T2.sens.map(s => `<td class="num ${s[1] > 50 ? "up" : "dn"}">${pc(s[1])}</td>`).join("")}</tr></table>
+  <p class="sub">Conta nacional simplificada: ${T2.a} e ${T2.l} mantêm os votos do 1º turno e os demais se dividem na fração indicada. Em 2022 a fração foi ${pc(T2.t22)}.</p></div>`;
+
+document.getElementById("ufs").innerHTML = `<tr><th>UF</th><th>seções<br>apuradas</th><th>Lula<br>2022</th><th>Lula<br>2026</th><th>Bolsonaro<br>2022</th><th>Flávio<br>2026</th><th>variação<br>direita</th><th>Bolsonaro<br>2º t. 2022</th><th>Flávio<br>2º t. 2026</th></tr>` +
+  D.ufs.map(u => `<tr><td>${u.uf}</td><td class="num">${pc(u.secoes)}</td><td class="num">${pc(u.lula22)}</td><td class="num">${pc(u.lula26)}</td><td class="num">${pc(u.bol22)}</td><td class="num">${pc(u.fla26)}</td>
+  <td class="num ${u.bol22 == null ? "" : u.fla26 > u.bol22 ? "up" : "dn"}">${u.bol22 == null ? "–" : sg(u.fla26 - u.bol22)}</td><td class="num">${pc(u.bol2t22)}</td><td class="num ${u.fla2t > 50 ? "up" : "dn"}">${pc(u.fla2t)}</td></tr>`).join("");
+</script>
