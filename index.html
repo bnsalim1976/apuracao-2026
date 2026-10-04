@@ -270,11 +270,12 @@ const depBruto = uf => DEPV[uf] || (D.dep || {})[uf] || null;
 function parseDep(d) {
   const c = (d?.carg || [])[0]; if (!c) return null;
   const agrs = (c.agr || []).map(a => {
-    let leg = 0; const cands = [];
-    for (const p of a.par || []) { leg += nInt(p.tvtl); for (const x of p.cand || []) cands.push({n: String(x.n), nm: titulo(x.nmu || x.nm), p: p.sg, v: nInt(x.vap), st: x.st || "", e: x.e === "s"}) }
+    let leg = 0, tvtn = 0; const cands = [];
+    for (const p of a.par || []) { leg += nInt(p.tvtl); tvtn += nInt(p.tvtn); for (const x of p.cand || []) cands.push({n: String(x.n), nm: titulo(x.nmu || x.nm), p: p.sg, v: nInt(x.vap), st: x.st || "", e: x.e === "s"}) }
     const nome = a.tp === "f" ? String(a.com || a.nm).replace(/\s*\/\s*/g, "/") : ((a.par || [])[0]?.sg || a.nm);
-    const nom = cands.reduce((t, x) => t + x.v, 0);
-    return {id: a.n, nome, fed: a.tp === "f", votos: nom + leg, nom, leg, cands: cands.sort((x, y) => y.v - x.v)};
+    // tvtn = nominais válidos segundo o TSE (leitura do nome do campo não medida: o arquivo estava zerado)
+    const somaVap = cands.reduce((t, x) => t + x.v, 0), nom = tvtn || somaVap;
+    return {id: a.n, nome, fed: a.tp === "f", votos: nom + leg, nom, leg, fora: Math.max(0, somaVap - nom), cands: cands.sort((x, y) => y.v - x.v)};
   });
   const s = d.s || {};
   return {vagas: nInt(c.nv), agrs, st: nInt(s.st), ts: nInt(s.ts)};
@@ -302,13 +303,14 @@ function blocoCamara() {
   const P6 = parseDep(depBruto(st.uf));
   if (!P6) return st.uf === ALVO_DEP.uf ? `<div class="card"><h3>Câmara dos Deputados · ${st.uf}</h3><p class="empty">Arquivo de deputado federal ainda não lido.</p></div>` : "";
   const R = cadeiras(P6), ap = pct(P6.st, P6.ts);
+  const oficial = P6.agrs.some(g => g.cands.some(c => c.e)), fora = P6.agrs.reduce((a, g) => a + g.fora, 0);
   if (!R) return `<div class="card"><h3>Câmara dos Deputados · ${P6.vagas} cadeiras ${DE[st.uf]} ${UFNOME[st.uf]}</h3><p class="empty">Ainda sem votos apurados para deputado federal.</p></div>`;
-  let out = `<div class="card"><h3>Câmara dos Deputados · ${P6.vagas} cadeiras ${DE[st.uf]} ${UFNOME[st.uf]} <span class="tag">projeção parcial</span></h3>
-    <div class="scroll"><table class="cmp"><thead><tr><th>Partido ou federação</th><th>Votos</th><th>% válidos</th><th>QP</th><th>Cadeiras</th></tr></thead><tbody>
-    ${R.G.filter(g => g.eleitos.length || g.votos >= 0.5 * R.QE).map(g => `<tr><td>${esc(g.nome)}</td><td>${fint(g.votos)}</td><td>${fmt(g.votos / R.V * 100)}%</td><td>${fmt(g.votos / R.QE, 2)}</td><td><b>${g.eleitos.length}</b></td></tr>`).join("")}
+  let out = `<div class="card"><h3>Câmara dos Deputados · ${P6.vagas} cadeiras ${DE[st.uf]} ${UFNOME[st.uf]} <span class="tag">${oficial ? "resultado do TSE" : "cálculo sobre a parcial"}</span></h3>
+    <div class="scroll"><table class="cmp"><thead><tr><th>Partido ou federação</th><th>Votos</th><th>% válidos</th><th>QP</th><th>Cadeiras</th>${oficial ? "<th>TSE</th>" : ""}</tr></thead><tbody>
+    ${R.G.filter(g => g.eleitos.length || g.votos >= 0.5 * R.QE).map(g => `<tr><td>${esc(g.nome)}</td><td>${fint(g.votos)}</td><td>${fmt(g.votos / R.V * 100)}%</td><td>${fmt(g.votos / R.QE, 2)}</td><td><b>${g.eleitos.length}</b></td>${oficial ? `<td>${g.cands.filter(c => c.e).length}</td>` : ""}</tr>`).join("")}
     </tbody></table></div>
-    <details><summary class="note">Eleitos nesta projeção (${R.G.reduce((a, g) => a + g.eleitos.length, 0)})</summary><ol class="lst">${R.G.flatMap(g => g.eleitos.map(c => `<li>${esc(c.nm)} (${esc(c.p)}) ${fint(c.v)}${c.ok > 1 ? ` <span class="np">sobra, ${c.ok}ª fase</span>` : ""}</li>`)).join("")}</ol></details>
-    <p class="note">Com ${fmt(ap, 1)}% das seções. Quociente eleitoral: ${fint(R.QE)} votos. QP = votos ÷ QE. Regra: quociente partidário com candidatos de 10% do QE; sobras por maiores médias entre quem tem 80% do QE e candidatos com 20%; o que restar, entre todos (STF). Votos de legenda incluídos. Cálculo nosso, não é o resultado do TSE.</p></div>`;
+    <details><summary class="note">${oficial ? "Eleitos pelo TSE" : "Dentro das cadeiras calculadas"} (${R.G.reduce((a, g) => a + g.eleitos.length, 0)})</summary><ol class="lst">${(oficial ? R.G.map(g => ({...g, eleitos: g.cands.filter(c => c.e)})) : R.G).flatMap(g => g.eleitos.map(c => `<li>${esc(c.nm)} (${esc(c.p)}) ${fint(c.v)}${c.ok > 1 ? ` <span class="np">sobra, ${c.ok}ª fase</span>` : ""}</li>`)).join("")}</ol></details>
+    <p class="note">Com ${fmt(ap, 1)}% das seções. Quociente eleitoral: ${fint(R.QE)} votos. QP = votos ÷ QE. Regra: quociente partidário com candidatos de 10% do QE; sobras por maiores médias entre quem tem 80% do QE e candidatos com 20%; o que restar, por maiores médias entre todos, sem votação mínima (STF, ADIs 7228 e 7263). Votos de legenda incluídos. Cálculo nosso sobre a parcial, não é o resultado do TSE.${fora ? ` Há ${fint(fora)} votos nominais fora do cômputo do TSE (anulados ou sub judice); o cálculo pode incluir candidato que não pode assumir.` : ""}</p></div>`;
   if (st.uf === ALVO_DEP.uf) out += blocoAlvo(P6, R);
   return out;
 }
@@ -328,9 +330,9 @@ function blocoAlvo(P6, R) {
       <div class="stat"><span>Posição em SC</span><b>${geral}º</b></div>
       <div class="stat"><span>Posição em ${esc(g.nome)}</span><b>${pos}º</b></div>
       <div class="stat"><span>Cadeiras de ${esc(g.nome)}</span><b>${g.eleitos.length}</b></div>
-      <div class="stat"><span>Nesta projeção</span><b class="${dentro ? "pos" : "neg"}">${dentro ? "eleito" : "fora"}</b></div>
+      <div class="stat"><span>${c.e ? "TSE" : "Nas cadeiras calculadas"}</span><b class="${c.e || dentro ? "pos" : "neg"}">${c.e ? "eleito" : dentro ? "dentro" : "fora"}</b></div>
     </div>
-    <p class="note">${dentro ? `Entra ${c.ok === 1 ? "pelo quociente partidário" : `nas sobras (${c.ok}ª fase)`}.` : dif != null ? `Faltam ${fint(dif)} votos para alcançar ${esc(ult.nm)}, último eleito ${g.fed ? "da federação" : "do partido"} nesta projeção.` : `${esc(g.nome)} ainda não elege ninguém nesta projeção.`} 10% do QE: ${fint(0.1 * R.QE)} votos; 20% do QE: ${fint(0.2 * R.QE)}. ${c.st ? `Situação no TSE: ${esc(c.st)}.` : ""}</p>
+    <p class="note">${dentro ? `Fica dentro ${c.ok === 1 ? "pelo quociente partidário" : `nas sobras (${c.ok}ª fase)`} nesta parcial.` : dif != null ? `Nesta parcial, está ${fint(dif)} votos atrás de ${esc(ult.nm)}, o último dentro das cadeiras calculadas ${g.fed ? "para a federação" : "para o partido"}. A distância e o número de cadeiras mudam com a apuração.` : `${esc(g.nome)} ainda não tem cadeira calculada nesta parcial.`} 10% do QE: ${fint(0.1 * R.QE)} votos; 20% do QE: ${fint(0.2 * R.QE)}. ${c.st ? `Situação no TSE: ${esc(c.st)}.` : ""}</p>
     ${top.length ? `<h3>Onde tem mais votos</h3><table class="cmp"><thead><tr><th>Município</th><th>Votos</th><th>% nominais</th></tr></thead><tbody>${top.map(t => `<tr><td>${esc(t.m.nm)}</td><td>${fint(t.v)}</td><td>${fmt(t.pct)}%</td></tr>`).join("")}</tbody></table>` : ""}</div>`;
 }
 
