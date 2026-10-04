@@ -232,7 +232,7 @@ async function atualizaVivo() {
   const ufs = Object.keys(UFNOME).map(u => u.toLowerCase());
   const alvos = [["1-br", 6257, "br", 1], ...ufs.flatMap(u => [[`1-${u.toUpperCase()}`, 6257, u, 1], [`3-${u.toUpperCase()}`, 6259, u, 3], [`5-${u.toUpperCase()}`, 6259, u, 5]])];
   const depUfs = [...new Set([ALVO_DEP.uf, st.uf].filter(Boolean))].map(u => u.toLowerCase());
-  await Promise.allSettled(depUfs.map(u => fetch(`https://resultados.tse.jus.br/oficial/ele2026/6259/dados/${u}/${u}-c0006-e006259-u.json`, {cache: "no-store"}).then(r => r.json()).then(d => DEPV[u.toUpperCase()] = d)));
+  await Promise.allSettled(depUfs.flatMap(u => [6, 7].map(cg => fetch(`https://resultados.tse.jus.br/oficial/ele2026/6259/dados/${u}/${u}-c000${cg}-e006259-u.json`, {cache: "no-store"}).then(r => r.json()).then(d => DEPV[depChave(u.toUpperCase(), cg)] = d))));
   const r = await Promise.allSettled(alvos.map(([k, ...a]) => leVivo(...a).then(x => [k, x])));
   const ok = r.filter(x => x.status === "fulfilled").map(x => x.value);
   if (!ok.length) return;
@@ -266,7 +266,8 @@ const alvoAtual = () => st.uf ? {uf: st.uf} : st.reg ? {reg: st.reg} : {br: true
 // ---------- Câmara: cadeiras do estado pelo quociente (Lei 14.211/2021; STF, ADIs 7228 e 7263) ----------
 const ALVO_DEP = {uf: "SC", n: "3017", nome: "Jungles Wegher"};  // candidato que acompanhamos
 const DEPV = {};  // arquivo de deputado federal lido ao vivo, por UF
-const depBruto = uf => DEPV[uf] || (D.dep || {})[uf] || null;
+const depChave = (uf, cg) => cg === 7 ? `${uf}-7` : uf;
+const depBruto = (uf, cg = 6) => DEPV[depChave(uf, cg)] || (D.dep || {})[depChave(uf, cg)] || null;
 function parseDep(d) {
   const c = (d?.carg || [])[0]; if (!c) return null;
   const agrs = (c.agr || []).map(a => {
@@ -298,20 +299,21 @@ function cadeiras(P6) {
   while (resto > 0) { const xs = G.filter(g => prox(g, 0)); if (!xs.length) break; const g = maior(xs); elege(g, prox(g, 0), 3); resto-- }
   return {QE, V, G: G.filter(g => g.votos > 0).sort((a, b) => b.eleitos.length - a.eleitos.length || b.votos - a.votos)};
 }
-function blocoCamara() {
+function blocoCamara(cg = 6) {
   if (!st.uf || st.mun || recorteAtivo()) return "";
-  const P6 = parseDep(depBruto(st.uf));
-  if (!P6) return st.uf === ALVO_DEP.uf ? `<div class="card"><h3>Câmara dos Deputados · ${st.uf}</h3><p class="empty">Arquivo de deputado federal ainda não lido.</p></div>` : "";
+  const casa = cg === 7 ? "Assembleia Legislativa" : "Câmara dos Deputados", quem = cg === 7 ? "deputado estadual" : "deputado federal";
+  const P6 = parseDep(depBruto(st.uf, cg));
+  if (!P6) return st.uf === ALVO_DEP.uf && cg === 6 ? `<div class="card"><h3>${casa} · ${st.uf}</h3><p class="empty">Arquivo de ${quem} ainda não lido.</p></div>` : "";
   const R = cadeiras(P6), ap = pct(P6.st, P6.ts);
   const oficial = P6.agrs.some(g => g.cands.some(c => c.e)), fora = P6.agrs.reduce((a, g) => a + g.fora, 0);
-  if (!R) return `<div class="card"><h3>Câmara dos Deputados · ${P6.vagas} cadeiras ${DE[st.uf]} ${UFNOME[st.uf]}</h3><p class="empty">Ainda sem votos apurados para deputado federal.</p></div>`;
-  let out = `<div class="card"><h3>Câmara dos Deputados · ${P6.vagas} cadeiras ${DE[st.uf]} ${UFNOME[st.uf]} <span class="tag">${oficial ? "resultado do TSE" : "cálculo sobre a parcial"}</span></h3>
+  if (!R) return `<div class="card"><h3>${casa} · ${P6.vagas} cadeiras ${DE[st.uf]} ${UFNOME[st.uf]}</h3><p class="empty">Ainda sem votos apurados para ${quem}.</p></div>`;
+  let out = `<div class="card"><h3>${casa} · ${P6.vagas} cadeiras ${DE[st.uf]} ${UFNOME[st.uf]} <span class="tag">${oficial ? "resultado do TSE" : "cálculo sobre a parcial"}</span></h3>
     <div class="scroll"><table class="cmp"><thead><tr><th>Partido ou federação</th><th>Votos</th><th>% válidos</th><th>QP</th><th>Cadeiras</th>${oficial ? "<th>TSE</th>" : ""}</tr></thead><tbody>
     ${R.G.filter(g => g.eleitos.length || g.votos >= 0.5 * R.QE).map(g => `<tr><td>${esc(g.nome)}</td><td>${fint(g.votos)}</td><td>${fmt(g.votos / R.V * 100)}%</td><td>${fmt(g.votos / R.QE, 2)}</td><td><b>${g.eleitos.length}</b></td>${oficial ? `<td>${g.cands.filter(c => c.e).length}</td>` : ""}</tr>`).join("")}
     </tbody></table></div>
     <details><summary class="note">${oficial ? "Eleitos pelo TSE" : "Dentro das cadeiras calculadas"} (${R.G.reduce((a, g) => a + g.eleitos.length, 0)})</summary><ol class="lst">${(oficial ? R.G.map(g => ({...g, eleitos: g.cands.filter(c => c.e)})) : R.G).flatMap(g => g.eleitos.map(c => `<li>${esc(c.nm)} (${esc(c.p)}) ${fint(c.v)}${c.ok > 1 ? ` <span class="np">sobra, ${c.ok}ª fase</span>` : ""}</li>`)).join("")}</ol></details>
     <p class="note">Com ${fmt(ap, 1)}% das seções. Quociente eleitoral: ${fint(R.QE)} votos. QP = votos ÷ QE. Regra: quociente partidário com candidatos de 10% do QE; sobras por maiores médias entre quem tem 80% do QE e candidatos com 20%; o que restar, por maiores médias entre todos, sem votação mínima (STF, ADIs 7228 e 7263). Votos de legenda incluídos. Cálculo nosso sobre a parcial, não é o resultado do TSE.${fora ? ` Há ${fint(fora)} votos nominais fora do cômputo do TSE (anulados ou sub judice); o cálculo pode incluir candidato que não pode assumir.` : ""}</p></div>`;
-  if (st.uf === ALVO_DEP.uf) out += blocoAlvo(P6, R);
+  if (st.uf === ALVO_DEP.uf && cg === 6) out += blocoAlvo(P6, R);
   return out;
 }
 function blocoAlvo(P6, R) {
@@ -749,7 +751,7 @@ function painel() {
       <div class="prog" aria-hidden="true"><i style="width:${ap || 0}%"></i></div>
     </div>
     <div class="card"><h3>Votos válidos</h3>${blocoCands(S, st.cargo)}${aviso}${sen2}${ext}</div>
-    ${blocoLinha()}${blocoEstimativa(muns)}${blocoProj(S)}${blocoCamara()}${blocoDispersao(muns)}${bloco2022(muns)}${blocoFilhos()}`;
+    ${blocoLinha()}${blocoEstimativa(muns)}${blocoProj(S)}${blocoCamara(6)}${blocoCamara(7)}${blocoDispersao(muns)}${bloco2022(muns)}${blocoFilhos()}`;
   const cp = document.getElementById("copiar");
   if (cp) cp.onclick = e => { e.stopPropagation(); navigator.clipboard.writeText(location.href).then(() => cp.textContent = "Link copiado", () => cp.textContent = location.href) };
   document.getElementById("crumb").onclick = e => { const a = e.target.dataset.a; if (a === "br") seleciona({}); if (a === "reg") seleciona({reg: st.reg}); if (a === "uf") seleciona({uf: st.uf}) };
