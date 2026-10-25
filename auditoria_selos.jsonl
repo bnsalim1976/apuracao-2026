@@ -60,3 +60,4 @@
 {"arquivo": "auditoria/t2/log.jsonl", "linhas": 6130, "bytes": 2784376, "sha256": "b5d9f22dcb1148dc77751e00a3d946dd9bdff0d83192eef7facab86c11cb5170"}
 {"arquivo": "auditoria/t2/log.jsonl", "linhas": 6226, "bytes": 2828720, "sha256": "4d327201e64059a39c9e63c6980bae3f2e724204180e0499e4381f25b3f6ce96"}
 {"arquivo": "auditoria/t2/log.jsonl", "linhas": 6322, "bytes": 2873064, "sha256": "e54cf68fa52739b9aa633e7afcd0920e72145d1d69c7e218e547b1398be6f7ce"}
+{"arquivo": "auditoria/t2/log.jsonl", "linhas": 6418, "bytes": 2917407, "sha256": "f6eedd80ece4424c0b6836ac52a6fb48bb45904e3a3aaeaa009874bb7b186464"}
